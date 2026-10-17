@@ -13,6 +13,18 @@ export function useAuth() {
     return data.user
 }
 
+    async function getUser() {
+        const { data, error } = await supabase.auth.getUser()
+
+        if (data) {
+            console.log(data.user);
+            return data.user;
+        } else {
+            console.log('Nenhum user encontrado.')
+            throw error;
+        }
+    }
+
 
  async function signInWithEmail(email: string, senha: string) {
     const {data, error} = await supabase.auth.signInWithPassword({
@@ -63,6 +75,7 @@ export function useAuth() {
 return {
     signUpNewUser,
     signInWithEmail,
-    atualizarSenha
+    atualizarSenha,
+    getUser
 }
 }

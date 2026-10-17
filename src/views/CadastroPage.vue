@@ -179,7 +179,7 @@ const cadastro = async () => {
 };
 
 const navigateToSignUp = () => {
-  router.push("/tabs/perfil");
+  router.push("/tabs/login");
 };
 </script>
 
