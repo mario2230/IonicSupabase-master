@@ -1,64 +1,100 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <main class="profile-page">
-        <header class="page-heading">
-          <div>
-            <p class="eyebrow">SUA CONTA</p>
-            <h1>Meu perfil</h1>
-          </div>
-          <ion-button class="logout-button" fill="outline" color="danger" disabled>
-            <ion-icon slot="start" :icon="logOutOutline"></ion-icon>
-            Sair
-          </ion-button>
-        </header>
+      <ion-grid class="profile-page">
+        <ion-row class="page-heading ion-align-items-center">
+          <ion-col>
+            <ion-text class="eyebrow">SUA CONTA</ion-text>
+            <ion-title class="page-title">Meu perfil</ion-title>
+          </ion-col>
+          <ion-col size="auto">
+            <ion-button class="logout-button" fill="outline" color="danger" @click="sair()" >
+              <ion-icon slot="start" :icon="logOutOutline"></ion-icon>
+              Sair
+            </ion-button>
+          </ion-col>
+        </ion-row>
 
         <ion-card v-if="carregando" class="profile-card state-card">
-          <ion-spinner name="crescent"></ion-spinner>
-          <ion-text>Carregando seu perfil...</ion-text>
+          <ion-card-content class="state-content">
+            <ion-spinner name="crescent"></ion-spinner>
+            <ion-text>Carregando seu perfil...</ion-text>
+          </ion-card-content>
         </ion-card>
         <ion-card v-else-if="erro" class="profile-card state-card error-card">
-          <ion-text>{{ erro }}</ion-text>
+          <ion-card-content class="state-content">
+            <ion-text>{{ erro }}</ion-text>
+          </ion-card-content>
         </ion-card>
         <ion-card v-else-if="perfil" class="profile-card">
-          <div class="profile-hero">
-            <img v-if="fotoUrl" class="avatar" :src="fotoUrl" alt="Foto de perfil" />
-            <div v-else class="avatar avatar-placeholder">
-              {{ perfil.nome?.charAt(0)?.toUpperCase() || "?" }}
-            </div>
-            <h2>{{ perfil.nome || "Seu nome" }}</h2>
-            <p>@{{ perfil.nickname || "sem apelido" }}</p>
-          </div>
+          <ion-card-content>
+            <ion-grid class="profile-hero">
+              <ion-row>
+                <ion-col class="ion-text-center">
+                  <ion-avatar class="avatar">
+                    <ion-img v-if="fotoUrl" :src="fotoUrl" alt="Foto de perfil"></ion-img>
+                    <ion-text v-else class="avatar-placeholder">
+                      {{ perfil.nome?.charAt(0)?.toUpperCase() || "?" }}
+                    </ion-text>
+                  </ion-avatar>
+                  <ion-title class="profile-name">{{ perfil.nome || "Seu nome" }}</ion-title>
+                  <ion-text class="profile-nickname">@{{ perfil.nickname || "sem apelido" }}</ion-text>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
 
-          <div class="profile-details">
-            <div class="detail-row">
-              <span class="detail-label">Nome</span>
-              <span class="detail-value">{{ perfil.nome || "Não informado" }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Apelido</span>
-              <span class="detail-value">{{ perfil.nickname || "Não informado" }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Data de nascimento</span>
-              <span class="detail-value">{{ perfil.data_nascimento || "Não informada" }}</span>
-            </div>
-          </div>
+            <ion-list class="profile-details">
+              <ion-item>
+                <ion-label>Nome</ion-label>
+                <ion-note slot="end">{{ perfil.nome || "Não informado" }}</ion-note>
+              </ion-item>
+              <ion-item>
+                <ion-label>Apelido</ion-label>
+                <ion-note slot="end">{{ perfil.nickname || "Não informado" }}</ion-note>
+              </ion-item>
+              <ion-item>
+                <ion-label>Data de nascimento</ion-label>
+                <ion-note slot="end">{{ perfil.data_nascimento || "Não informada" }}</ion-note>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
         </ion-card>
-      </main>
+      </ion-grid>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonCard, IonText, IonButton, IonIcon, IonSpinner } from '@ionic/vue';
+import {
+  IonPage,
+  IonContent,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonCard,
+  IonCardContent,
+  IonText,
+  IonTitle,
+  IonButton,
+  IonIcon,
+  IonSpinner,
+  IonAvatar,
+  IonImg,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonNote,
+} from '@ionic/vue';
 import { logOutOutline } from 'ionicons/icons';
 import { usePerfil } from '@/service/userPerfil';
+import { useAuth } from '@/service/userAuth';
 import { ref } from 'vue';
 import { onIonViewWillEnter } from '@ionic/vue';
+import router from '@/router';
 const { buscarPerfil } = usePerfil();
 const { carregarImagem } = usePerfil();
 
+const { deslogarUser } = useAuth();
 const perfil = ref<{
   nome: string | null;
   nickname: string | null;
@@ -70,7 +106,17 @@ const fotoUrl = ref<string | null>("");
 
 
 const carregando = ref(true);
-const erro = ref("")
+const erro = ref("");
+
+async function sair() {
+  try {
+    await deslogarUser();
+    await router.replace("/tabs/login");
+  } catch (err) {
+    erro.value = err instanceof Error ? err.message : "Não foi possível deslogar.";
+  }
+}
+
 
 onIonViewWillEnter(async () => {
   try {

@@ -38,7 +38,13 @@ export function useAuth() {
     return data.user
 }
 
+async function deslogarUser() {
+    const { error} = await supabase.auth.signOut();
 
+    if(error) {
+        throw error;
+    }
+}
 
  async function atualizarSenha(senhaAtual: string, senhaNova: string) {
     const { data: {user}, error: UserError} = await supabase.auth.getUser()
@@ -76,6 +82,7 @@ return {
     signUpNewUser,
     signInWithEmail,
     atualizarSenha,
-    getUser
+    getUser,
+    deslogarUser
 }
 }
